@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swap التبديل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Fira+Code:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff6e9; --paper:#ffffff; --ink:#1d1b3b; --muted:#6c6a85; --soft:#f4ecdf;
+  --yellow:#ffd23f; --red:#ff5a4e; --blue:#3a86ff; --mint:#06d6a0; --pink:#ff8fab; --orange:#ff9f1c;
+  --ok:#05a57c; --bad:#e63c63; --code:#1d1b3b; --code2:#2a2852;
+  --mono:'Fira Code',monospace;
+  --s:min(1vh,.56vw);
+  --s:min(1dvh,.56vw);
+  --gap:calc(var(--s)*1.8);
+  --r:calc(var(--s)*2.4);
+  --bd:3px solid var(--ink);
+  --sh:calc(var(--s)*.7) calc(var(--s)*.7) 0 var(--ink);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Baloo Bhaijaan 2',sans-serif;color:var(--ink);overflow:hidden;font-size:calc(var(--s)*2.2);
+  background:radial-gradient(#e8d9bf 1.3px,transparent 1.5px) 0 0/22px 22px,var(--bg)}
+button{font:inherit;color:inherit}
+.ltr{direction:ltr;unicode-bidi:isolate;font-family:var(--mono)}
+.app{height:100vh;height:100dvh;display:grid;grid-template-rows:auto 1fr auto}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*2);padding:calc(var(--s)*1) calc(var(--s)*3);background:var(--paper);border-bottom:var(--bd);z-index:5}
+.brand{display:flex;align-items:center;gap:calc(var(--s)*1.4)}
+.logo{width:calc(var(--s)*5.6);height:calc(var(--s)*5.6);border-radius:calc(var(--s)*1.6);background:var(--yellow);border:var(--bd);box-shadow:3px 3px 0 var(--ink);display:grid;place-items:center;flex:none;transform:rotate(-6deg)}
+.logo svg{width:58%;height:58%}
+.brand b{display:block;font-size:calc(var(--s)*2.9);font-weight:800;line-height:1.1}
+.brand b .en{font-family:var(--mono);color:var(--blue);margin-inline-end:6px}
+.brand span{font-size:calc(var(--s)*1.6);color:var(--muted);font-family:var(--mono)}
+.stepper{display:flex;align-items:center}
+.step-btn{display:flex;align-items:center;gap:calc(var(--s)*.8);background:none;border:0;cursor:pointer;font-weight:700;font-size:calc(var(--s)*1.95);color:var(--muted);padding:0 calc(var(--s)*.4)}
+.step-btn i{font-style:normal;width:calc(var(--s)*3.8);height:calc(var(--s)*3.8);border-radius:50%;display:grid;place-items:center;background:var(--paper);border:2.5px solid var(--ink);font-family:var(--mono);font-size:calc(var(--s)*1.7);color:var(--ink);transition:.25s}
+.step-btn+.step-btn::before{content:"";width:calc(var(--s)*2.6);height:3px;background:#d9cdb8;border-radius:3px;margin-inline-end:calc(var(--s)*.4)}
+.step-btn.done i{background:var(--mint)}
+.step-btn.done+.step-btn::before,.step-btn.done::before{background:var(--ink)}
+.step-btn.active{color:var(--ink)}
+.step-btn.active i{background:var(--yellow);transform:scale(1.15);box-shadow:2px 2px 0 var(--ink)}
+@media(max-width:1100px){.step-btn span{display:none}}
+
+/* screens */
+.stage{position:relative;overflow:hidden;overflow:clip}
+.screen{position:absolute;inset:0;padding:calc(var(--s)*1.8) calc(var(--s)*3.5) calc(var(--s)*2.2);overflow:auto;display:flex;flex-direction:column;gap:var(--gap);opacity:0;visibility:hidden;transform:translateY(24px);transition:opacity .4s,transform .4s,visibility .4s}
+.screen.active{opacity:1;visibility:visible;transform:none}
+.screen>*{width:100%}
+.screen-head{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.6);flex-wrap:wrap;flex:none}
+.screen-head>div:first-child{display:flex;align-items:center;gap:calc(var(--s)*1.4)}
+.kicker{font-size:calc(var(--s)*1.8);font-weight:800;color:var(--yellow);background:var(--ink);padding:calc(var(--s)*.2) calc(var(--s)*1.6);border-radius:calc(var(--s)*1);white-space:nowrap;transform:rotate(-3deg)}
+.screen-head h2{font-size:calc(var(--s)*3.8);font-weight:800;line-height:1.2}
+.screen-head p{color:var(--muted);font-size:calc(var(--s)*2.1);font-weight:600}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--gap);flex:1;min-height:0}
+.split>*{min-height:0}
+.card{background:var(--paper);border:var(--bd);border-radius:var(--r);padding:calc(var(--s)*2);box-shadow:var(--sh)}
+.label{font-size:calc(var(--s)*1.85);font-weight:800;color:var(--muted);margin-bottom:calc(var(--s)*.7);display:block}
+
+/* buttons */
+.btn{font-weight:800;font-size:calc(var(--s)*2.15);border:var(--bd);border-radius:calc(var(--s)*1.6);padding:calc(var(--s)*.8) calc(var(--s)*2.4);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:calc(var(--s)*1);white-space:nowrap;box-shadow:3px 3px 0 var(--ink);transition:transform .12s,box-shadow .12s,opacity .2s;background:var(--paper)}
+.btn svg{width:calc(var(--s)*2.4);height:calc(var(--s)*2.4);flex:none}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.btn.primary{background:var(--yellow)}
+.btn.blue{background:var(--blue);color:#fff}
+.btn.icon{padding-inline:calc(var(--s)*1.3)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.btn.pulse{animation:wig 1.2s ease-in-out infinite}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+.chips{display:flex;gap:calc(var(--s)*.9);flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:calc(var(--s)*1.9);font-weight:600;padding:calc(var(--s)*.5) calc(var(--s)*1.5);border-radius:calc(var(--s)*1.2);border:2.5px solid var(--ink);background:var(--paper);cursor:pointer;direction:ltr;transition:.15s}
+.chip:hover{background:var(--soft)}
+.chip.active{background:var(--blue);color:#fff}
+.chip.custom{border-style:dashed}
+.controls{display:flex;gap:calc(var(--s)*1.1);flex-wrap:wrap;align-items:center}
+
+/* dock */
+.dock{display:flex;align-items:center;gap:calc(var(--s)*1.6);background:var(--paper);border:var(--bd);border-radius:calc(var(--s)*2.2);padding:calc(var(--s)*.8) calc(var(--s)*1.6);flex:none;flex-wrap:wrap;box-shadow:var(--sh)}
+.dock .txt{flex:1;min-width:200px;font-weight:700;font-size:calc(var(--s)*2.35);line-height:1.5}
+.av{width:calc(var(--s)*6);height:calc(var(--s)*6);border-radius:50%;background:var(--blue);border:var(--bd);overflow:hidden;flex:none}
+.av svg{width:100%;height:100%;display:block}
+
+/* ===== 1. story ===== */
+.story{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:var(--gap)}
+.story>*{min-height:0}
+.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}
+.bubble{background:var(--paper);border:var(--bd);border-radius:calc(var(--s)*2.6);padding:calc(var(--s)*1.2) calc(var(--s)*2.8);font-weight:700;font-size:calc(var(--s)*2.7);line-height:1.5;max-width:calc(var(--s)*56);text-align:center;position:relative;margin-bottom:calc(var(--s)*2.6);box-shadow:var(--sh);flex:none}
+.bubble::after{content:"";position:absolute;bottom:calc(var(--s)*-1.4);left:50%;width:calc(var(--s)*2.4);height:calc(var(--s)*2.4);background:var(--paper);border-right:var(--bd);border-bottom:var(--bd);transform:translateX(-50%) rotate(45deg)}
+.bubble b{color:var(--red)}
+.bubble.pop{animation:bpop .45s}
+@keyframes bpop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.bot{flex:1 1 0;min-height:0;width:100%;animation:hover 3s ease-in-out infinite}
+@keyframes hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.bot .eye{transform-box:fill-box;transform-origin:center;animation:blink 4s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.bot .ant{animation:glowA 1.6s ease-in-out infinite}
+@keyframes glowA{0%,100%{fill:#ff5a4e}50%{fill:#ffd23f}}
+.bot .armR{transform-box:view-box;transform-origin:168px 168px;animation:lift 2.6s ease-in-out infinite}
+@keyframes lift{0%,100%{transform:rotate(0)}50%{transform:rotate(-8deg)}}
+.char-name{margin-top:calc(var(--s)*.4);font-weight:800;color:var(--yellow);background:var(--ink);font-size:calc(var(--s)*2.1);padding:calc(var(--s)*.1) calc(var(--s)*2.2);border-radius:999px;flex:none}
+
+.game{display:flex;flex-direction:column;justify-content:space-between;gap:calc(var(--s)*1.4)}
+.goal-row{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.4);flex-wrap:wrap}
+.goal{display:flex;align-items:center;gap:calc(var(--s)*.8);font-weight:800;font-size:calc(var(--s)*2.1);background:var(--soft);border:2.5px solid var(--ink);border-radius:999px;padding:calc(var(--s)*.3) calc(var(--s)*1.6)}
+.goal .ltr{color:var(--blue)}
+.game-hint{font-weight:700;font-size:calc(var(--s)*2.4);text-align:center;min-height:calc(var(--s)*3.8);line-height:1.5}
+.game-hint b{background:var(--yellow);padding:0 6px;border-radius:6px}
+.game-hint.ok{color:var(--ok)} .game-hint.bad{color:var(--bad)}
+.cups-row{flex:1;min-height:0;display:flex;align-items:flex-end;justify-content:space-around;gap:calc(var(--s)*2);direction:ltr}
+.cupbox{background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:calc(var(--s)*1);height:100%;max-height:calc(var(--s)*30);flex:1;min-width:0;transition:transform .25s}
+.cupbox:disabled{cursor:default}
+.cupbox svg{flex:1;min-height:0;width:100%;overflow:visible}
+.cupbox .nm{font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.4);padding:calc(var(--s)*.2) calc(var(--s)*1.6);border-radius:999px;background:var(--paper);border:2.5px solid var(--ink);transition:.2s}
+.cupbox.tmp .nm{background:#e3eeff}
+.cupbox:not(:disabled):hover{transform:translateY(-4px)}
+.cupbox.target{transform:translateY(calc(var(--s)*-1.8))!important}
+.cupbox.target .nm{background:var(--yellow)}
+.cupbox .bgl{fill:rgba(255,255,255,.7)}
+.cupbox .glass{fill:none;stroke:var(--ink);stroke-width:4;stroke-linejoin:round}
+.cupbox.tmp .glass{stroke:var(--blue);stroke-dasharray:10 8}
+.cupbox .liq{transform-box:fill-box;transform-origin:center bottom;transition:transform .55s cubic-bezier(.3,1.3,.5,1),fill .35s}
+.cupbox.moving{position:relative;z-index:20;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+.cupbox .val{transition:opacity .4s}
+.cupbox .val.fade{opacity:0}
+.stream{position:fixed;z-index:19;border-radius:0 0 8px 8px;pointer-events:none;transform:scaleY(0);transform-origin:top;transition:transform .16s linear;background-size:100% 26px;animation:flow .25s linear infinite}
+.stream.on{transform:scaleY(1)}
+.stream.off{transform-origin:bottom;transform:scaleY(0)}
+@keyframes flow{from{background-position:0 0}to{background-position:0 26px}}
+.sndbtn.off svg .w{display:none}
+.sndbtn.off svg .x{display:inline}
+.sndbtn svg .x{display:none}
+.cupbox .liq.empty{transform:scaleY(0)}
+.cupbox .shine{fill:rgba(255,255,255,.55)}
+.cupbox .val{font-family:var(--mono);font-weight:700;font-size:34px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.cupbox.pour svg{animation:pour .6s}
+@keyframes pour{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+.stmt{display:flex;align-items:center;justify-content:center;gap:calc(var(--s)*1.2);direction:ltr;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*3.2)}
+.stmt .sl{min-width:calc(var(--s)*13);padding:calc(var(--s)*.3) calc(var(--s)*1.4);border-radius:calc(var(--s)*1.2);border:2.5px dashed #b9ae9c;color:#b9ae9c;text-align:center}
+.stmt .sl.fill{border:2.5px solid var(--ink);background:var(--yellow);color:var(--ink)}
+.game-foot{display:flex;align-items:center;gap:calc(var(--s)*1.4)}
+.log{flex:1;display:flex;gap:calc(var(--s)*.8);flex-wrap:wrap;direction:ltr;min-height:calc(var(--s)*5);align-items:center;background:var(--code);border-radius:calc(var(--s)*1.4);padding:calc(var(--s)*.6) calc(var(--s)*1.2)}
+.log span{font-family:var(--mono);font-size:calc(var(--s)*1.9);font-weight:600;padding:calc(var(--s)*.25) calc(var(--s)*1.1);border-radius:calc(var(--s)*.8);background:var(--code2);color:#e9e7ff}
+.log span.bad{background:var(--bad);color:#fff}
+.log span.good{background:var(--mint);color:var(--ink)}
+.log em{font-style:normal;color:#8f8cb8;font-weight:600;font-size:calc(var(--s)*1.9);direction:rtl;font-family:'Baloo Bhaijaan 2'}
+
+/* ===== 2. analysis ===== */
+.an-grid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:var(--gap)}
+.an{position:relative;display:flex;flex-direction:column;gap:calc(var(--s)*.8);overflow:hidden;padding:calc(var(--s)*1.5) calc(var(--s)*2.2);transition:background .4s}
+.an.locked{background:repeating-linear-gradient(-45deg,var(--paper) 0 14px,var(--soft) 14px 28px)}
+.an-top{display:flex;align-items:center;gap:calc(var(--s)*1.3);flex:none}
+.an-ic{width:calc(var(--s)*5);height:calc(var(--s)*5);border-radius:calc(var(--s)*1.4);display:grid;place-items:center;flex:none;border:2.5px solid var(--ink)}
+.an-ic svg{width:55%;height:55%}
+.an-top h3{font-size:calc(var(--s)*3);font-weight:800}
+.an-top .num{margin-inline-start:auto;font-family:var(--mono);font-size:calc(var(--s)*1.8);color:var(--muted)}
+.an-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--s)*1.1);text-align:center;transition:opacity .45s,transform .45s}
+.an.locked .an-body{opacity:0;transform:translateY(14px);pointer-events:none}
+.an .q{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:calc(var(--s)*14);font-weight:700;color:rgba(29,27,59,.1);transition:opacity .4s;pointer-events:none}
+.an:not(.locked) .q{opacity:0}
+.an.fresh{box-shadow:calc(var(--s)*.7) calc(var(--s)*.7) 0 var(--yellow),calc(var(--s)*.7) calc(var(--s)*.7) 0 3px var(--ink)}
+.an small{color:var(--muted);font-weight:700;font-size:calc(var(--s)*2.2)}
+.an .warn{color:var(--bad)}
+.mini-code{direction:ltr;font-family:var(--mono);font-weight:600;font-size:calc(var(--s)*2.4);background:var(--code);color:#e9e7ff;border-radius:calc(var(--s)*1.3);padding:calc(var(--s)*.6) calc(var(--s)*2.4);text-align:left;line-height:1.5}
+.steps3{display:flex;gap:calc(var(--s)*.7);align-items:center;direction:ltr;flex-wrap:wrap;justify-content:center}
+.steps3 span{font-family:var(--mono);font-weight:600;font-size:calc(var(--s)*2.1);padding:calc(var(--s)*.5) calc(var(--s)*1.1);border-radius:calc(var(--s)*1.1);background:var(--soft);border:2.5px solid var(--ink)}
+.steps3 span b{display:inline-grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;background:var(--yellow);border:2px solid var(--ink);margin-right:6px;font-size:.8em}
+.steps3 i{font-style:normal;font-weight:800;color:var(--muted)}
+
+/* memory boxes (shared) */
+.mrow{display:flex;gap:calc(var(--s)*1.2);direction:ltr;justify-content:center;flex-wrap:wrap}
+.mbox{display:flex;flex-direction:column;align-items:center;gap:calc(var(--s)*.3)}
+.mbox small{font-family:var(--mono);color:var(--muted);font-size:calc(var(--s)*1.85);font-weight:600}
+.mbox b{min-width:calc(var(--s)*10);height:calc(var(--s)*7.6);display:grid;place-items:center;border-radius:calc(var(--s)*1.5);background:var(--paper);border:3px solid var(--ink);font-family:var(--mono);font-size:calc(var(--s)*3.4);padding:0 calc(var(--s)*1.2);transition:background .3s,color .3s}
+.mbox.tmp b{border-style:dashed;border-color:var(--blue)}
+.mbox.empty b{color:#c4baa8}
+.mbox.ok b{background:#d4f7ec;color:var(--ok)}
+.mbox.bad b{background:#ffe0e7;color:var(--bad)}
+.mbox.cur b{background:var(--yellow)}
+.vtiles{display:flex;gap:calc(var(--s)*1.4);direction:ltr;justify-content:center}
+
+/* ===== 3. design ===== */
+.design{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,.9fr);gap:var(--gap)}
+.design>*{min-height:0}
+.pseudo-card{display:flex;flex-direction:column}
+.pseudo{list-style:none;display:flex;flex-direction:column;gap:calc(var(--s)*.8);flex:1;min-height:0}
+.pseudo li{flex:1;min-height:0;max-height:calc(var(--s)*8);display:flex;gap:calc(var(--s)*1.2);align-items:center;padding:0 calc(var(--s)*1.5);border-radius:calc(var(--s)*1.4);background:var(--paper);border:2.5px solid var(--ink);font-weight:700;font-size:calc(var(--s)*2.3);transition:.35s;opacity:0;transform:translateX(-18px)}
+.pseudo li.show{opacity:1;transform:none}
+.pseudo li .n{width:calc(var(--s)*3.5);height:calc(var(--s)*3.5);border-radius:calc(var(--s)*1);display:grid;place-items:center;background:var(--soft);border:2px solid var(--ink);font-family:var(--mono);font-size:calc(var(--s)*1.7);flex:none}
+.pseudo li.sw{border-color:var(--blue);background:#eef4ff}
+.pseudo li .tag{margin-inline-start:auto;font-size:calc(var(--s)*1.7);color:var(--blue);font-weight:800}
+.pseudo li.fresh{background:#d4f7ec}
+.pseudo li.cur{background:var(--yellow);box-shadow:3px 3px 0 var(--ink)}
+.pseudo code{font-family:var(--mono);direction:ltr;unicode-bidi:isolate;font-size:.9em;font-weight:600;color:var(--blue)}
+.progress{height:calc(var(--s)*1.2);border-radius:9px;background:var(--soft);border:2px solid var(--ink);overflow:hidden;margin-top:calc(var(--s)*1.1);flex:none}
+.progress i{display:block;height:100%;width:0;background:var(--mint);transition:width .4s}
+.flow-card{display:flex;align-items:center;justify-content:center;padding:calc(var(--s)*.8)}
+#flow{width:100%;height:100%}
+#flow .node{opacity:0;transform:scale(.55);transform-box:fill-box;transform-origin:center;transition:opacity .35s,transform .5s cubic-bezier(.3,1.6,.5,1)}
+#flow .node.show{opacity:1;transform:none}
+#flow .node .sh{fill:var(--paper);stroke:var(--ink);stroke-width:3;transition:fill .3s}
+#flow .node text{fill:var(--ink);font-size:15px;font-weight:700;text-anchor:middle;dominant-baseline:central;font-family:'Baloo Bhaijaan 2'}
+#flow .node text.mono{font-family:'Fira Code',monospace;font-size:15px}
+#flow .node.fresh .sh{fill:#d4f7ec}
+#flow .node.visited .sh{fill:#eef4ff}
+#flow .node.on .sh{fill:var(--yellow)}
+#flow .badge-c{fill:var(--yellow);stroke:var(--ink);stroke-width:2.5}
+#flow .badge-t{font-family:'Fira Code'!important;font-size:13px!important}
+#flow .grp rect{fill:rgba(58,134,255,.06);stroke:var(--blue);stroke-width:2.5;stroke-dasharray:10 7}
+#flow .grp text{fill:var(--blue);font-size:14px;font-weight:800;text-anchor:start}
+#flow .edge{opacity:0}
+#flow .edge.show{opacity:1}
+#flow .edge path{stroke:var(--ink);stroke-width:3;fill:none;marker-end:url(#arD);stroke-dasharray:100;stroke-dashoffset:0;transition:stroke .3s,stroke-width .3s}
+#flow .edge.show path{animation:draw .6s ease both}
+@keyframes draw{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+#flow .edge.on path{stroke:var(--red);stroke-width:5;marker-end:url(#arR)}
+.trace{display:flex;flex-direction:column;justify-content:space-between;gap:calc(var(--s)*1.3);transition:opacity .4s}
+.trace .btn{width:100%}
+.trace.locked{opacity:.4;pointer-events:none}
+.trace .mbox b{min-width:calc(var(--s)*8.6);height:calc(var(--s)*6.8);font-size:calc(var(--s)*3)}
+.expr-box{background:var(--code);color:var(--yellow);border-radius:calc(var(--s)*1.6);padding:calc(var(--s)*1);min-height:calc(var(--s)*9);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:calc(var(--s)*2.6);font-weight:600;direction:ltr;text-align:center}
+.result{font-family:var(--mono);font-size:calc(var(--s)*4.6);font-weight:700;min-height:calc(var(--s)*7.5);display:grid;place-items:center;background:var(--paper);border:3px solid var(--ink);border-radius:calc(var(--s)*1.6);direction:ltr}
+.result.yes{background:#d4f7ec;color:var(--ok)}
+
+/* ===== 4. ide ===== */
+.ide{background:var(--code);border-radius:var(--r);border:var(--bd);overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--sh)}
+.ide-bar{display:flex;align-items:center;gap:calc(var(--s)*1);padding:calc(var(--s)*1) calc(var(--s)*2);background:var(--code2);direction:ltr;flex:none}
+.ide-bar .d{width:calc(var(--s)*1.6);height:calc(var(--s)*1.6);border-radius:50%}
+.ide-bar .tab{margin-left:calc(var(--s)*1.4);font-family:var(--mono);font-size:calc(var(--s)*1.9);color:#a9a6d6}
+.code{direction:ltr;text-align:left;font-family:var(--mono);font-size:calc(var(--s)*2.5);line-height:1.5;padding:calc(var(--s)*1) 0;flex:1;overflow:auto;display:flex;flex-direction:column;justify-content:center}
+.ln{display:flex;padding:calc(var(--s)*.45) calc(var(--s)*2) calc(var(--s)*.45) calc(var(--s)*1.6);border-left:5px solid transparent;transition:background .2s;white-space:pre;color:#e9e7ff}
+.ln .no{width:calc(var(--s)*4.4);color:#6b68a0;user-select:none;flex:none}
+.ln.ran .no{color:var(--mint)}
+.ln.cur{background:rgba(255,210,63,.16);border-left-color:var(--yellow)}
+.sk{color:#ff8fab}.sf{color:#7cc4ff}.ss{color:#b8f28b}.sv{color:#fff}.sc{color:#8f8cb8;font-style:italic}
+.v1{color:#ffb347}.v2{color:#ff8fab}.v3{color:#7cc4ff}
+.mem{display:flex;flex-direction:column;justify-content:space-between;gap:calc(var(--s)*1.4)}
+.mem .mbox b{min-width:calc(var(--s)*15);height:calc(var(--s)*11);font-size:calc(var(--s)*5)}
+.mem .mbox small{font-size:calc(var(--s)*2.2)}
+.stps{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--s)*1)}
+.stp{border:2.5px solid var(--ink);border-radius:calc(var(--s)*1.4);padding:calc(var(--s)*.7);text-align:center;background:var(--soft);transition:.3s;opacity:.55}
+.stp b{display:block;font-size:calc(var(--s)*2.2);font-weight:800}
+.stp span{display:block;font-family:var(--mono);font-size:calc(var(--s)*1.8);direction:ltr;font-weight:600}
+.stp.on{background:var(--yellow);opacity:1;box-shadow:3px 3px 0 var(--ink)}
+.stp.done{background:#d4f7ec;opacity:1}
+.calc{display:flex;align-items:center;justify-content:center;gap:calc(var(--s)*1);direction:ltr;flex-wrap:wrap;background:var(--soft);border:2.5px dashed var(--ink);border-radius:calc(var(--s)*1.4);padding:calc(var(--s)*.8) calc(var(--s)*1.4);min-height:calc(var(--s)*7);font-family:var(--mono);font-size:calc(var(--s)*2.3);font-weight:600}
+.calc .ar{color:var(--muted)}
+.calc .cv{background:var(--yellow);border:2.5px solid var(--ink);border-radius:calc(var(--s)*.9);padding:0 calc(var(--s)*1)}
+.calc .ph2{font-family:'Baloo Bhaijaan 2';color:var(--muted);font-weight:700;direction:rtl}
+.console{background:var(--code);border-radius:calc(var(--s)*1.4);padding:calc(var(--s)*1) calc(var(--s)*2);font-family:var(--mono);font-size:calc(var(--s)*2.8);min-height:calc(var(--s)*7);direction:ltr;text-align:left;display:flex;align-items:center;gap:calc(var(--s)*1.4);color:var(--mint);font-weight:700}
+.console .pr{color:#6b68a0}
+.pop{animation:mpop .5s}
+@keyframes mpop{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+.shake{animation:shake .45s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+.jdot{display:inline-block;width:1.05em;height:1.05em;border-radius:50%;border:2.5px solid var(--ink);vertical-align:-.15em;margin:0 .15em}
+.mem .mbox{position:relative}
+.mem .mbox b{position:relative}
+.mem .mbox .addr{position:absolute;bottom:-1.5em;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:calc(var(--s)*1.45);color:#b3a892;white-space:nowrap}
+.mem .mrow{gap:calc(var(--s)*2.2);padding-bottom:calc(var(--s)*1.6)}
+.mbox.src b{box-shadow:0 0 0 calc(var(--s)*.6) rgba(58,134,255,.35);background:#eef4ff}
+.token{position:fixed;left:0;top:0;z-index:40;pointer-events:none;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*3.6);background:var(--yellow);border:3px solid var(--ink);border-radius:calc(var(--s)*1.3);padding:calc(var(--s)*.2) calc(var(--s)*1.4);box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+.token.old{background:#ffe0e7;color:var(--bad);box-shadow:none}
+.token .tg{position:absolute;top:-1.5em;left:50%;transform:translateX(-50%);font-family:'Baloo Bhaijaan 2';font-size:.45em;background:var(--ink);color:var(--yellow);padding:0 .6em;border-radius:999px}
+.console.land{animation:mpop .45s}
+
+/* ===== 5. test ===== */
+.tside{display:flex;flex-direction:column;gap:calc(var(--s)*2);justify-content:space-evenly}
+.test-in{display:flex;gap:calc(var(--s)*1.1);flex-wrap:wrap}
+.field{flex:1;min-width:200px;direction:ltr;font-family:var(--mono);font-size:calc(var(--s)*3.6);padding:calc(var(--s)*1) calc(var(--s)*2);border-radius:calc(var(--s)*1.6);border:var(--bd);background:var(--paper);outline:none;color:var(--ink)}
+.field:focus{background:#fffbea}
+.err{color:var(--bad);font-weight:700;font-size:calc(var(--s)*2);min-height:calc(var(--s)*3)}
+.outbox{background:var(--code);border-radius:calc(var(--s)*1.8);padding:calc(var(--s)*1.4) calc(var(--s)*2.6);direction:ltr}
+.outbox .lbl{font-family:var(--mono);color:#a9a6d6;font-size:calc(var(--s)*1.9)}
+.outbox .val{font-family:var(--mono);font-size:calc(var(--s)*6);font-weight:700;min-height:calc(var(--s)*8);color:var(--mint);line-height:1.3}
+.tgrid{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ph{color:var(--muted);font-weight:700;font-size:calc(var(--s)*2.2)}
+.ba{display:flex;flex-direction:column;gap:calc(var(--s)*1.8);align-items:center;width:100%}
+.ba .row{display:flex;align-items:center;gap:calc(var(--s)*2);justify-content:center}
+.ba .lbl2{font-weight:800;font-size:calc(var(--s)*2.3);min-width:calc(var(--s)*14);text-align:center;padding:calc(var(--s)*.2) calc(var(--s)*1);border-radius:999px;border:2.5px solid var(--ink);background:var(--soft)}
+.ba .row.good .lbl2{background:#d4f7ec}
+.ba .row.trapr .lbl2{background:#ffe0e7}
+.ba .arrow{width:calc(var(--s)*4.5);height:calc(var(--s)*4.5)}
+.ba .mbox b{min-width:calc(var(--s)*12);height:calc(var(--s)*9);font-size:calc(var(--s)*4)}
+.ba .sep{width:80%;border-top:3px dashed #d9cdb8}
+
+/* ===== 6. improve ===== */
+.seg{display:inline-flex;background:var(--paper);border:var(--bd);border-radius:calc(var(--s)*1.6);padding:4px;gap:4px;box-shadow:3px 3px 0 var(--ink)}
+.seg button{border:0;background:transparent;font-weight:800;font-size:calc(var(--s)*2);padding:calc(var(--s)*.6) calc(var(--s)*1.8);border-radius:calc(var(--s)*1.1);cursor:pointer;display:flex;align-items:center;gap:calc(var(--s)*.8)}
+.seg button b{font-family:var(--mono);font-size:calc(var(--s)*1.6);padding:0 calc(var(--s)*.9);border-radius:999px;background:var(--soft)}
+.seg button.on{background:var(--blue);color:#fff}
+.seg button.on b{background:rgba(255,255,255,.25)}
+.imp-side{display:flex;flex-direction:column;gap:var(--gap)}
+.imp-card{flex:1;min-height:0;display:flex;flex-direction:column;gap:calc(var(--s)*1.2);justify-content:center}
+.imp-card h3{font-size:calc(var(--s)*3);font-weight:800;display:flex;align-items:center;gap:calc(var(--s)*1.3)}
+.imp-card p{color:var(--muted);font-weight:600;font-size:calc(var(--s)*2.4);line-height:1.6}
+pre.snip{direction:ltr;text-align:left;background:var(--code);color:#e9e7ff;border-radius:calc(var(--s)*1.5);padding:calc(var(--s)*1.4) calc(var(--s)*2.2);font-family:var(--mono);font-size:calc(var(--s)*2.3);line-height:1.6;overflow:auto}
+.next-card{background:#fff1f0;justify-content:space-evenly}
+.next-card .mach{max-height:calc(var(--s)*26)}
+.mach{width:100%;flex:1 1 0;min-height:calc(var(--s)*8);max-height:calc(var(--s)*18)}
+
+/* bottom */
+.bottom{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.6);padding:calc(var(--s)*1) calc(var(--s)*3);background:var(--paper);border-top:var(--bd);z-index:5}
+.hints{display:flex;gap:calc(var(--s)*1);flex-wrap:wrap;justify-content:center}
+.hint-btn{display:flex;align-items:center;gap:calc(var(--s)*.7);padding:calc(var(--s)*.5) calc(var(--s)*1.6);border-radius:999px;background:#eef4ff;border:2.5px solid var(--ink);font-size:calc(var(--s)*1.95);font-weight:800;cursor:pointer;transition:.15s;box-shadow:2px 2px 0 var(--ink)}
+.hint-btn:hover{transform:translateY(-2px);background:#dde9ff}
+.hint-btn svg{width:calc(var(--s)*2.3);height:calc(var(--s)*2.3);flex:none;color:var(--blue)}
+
+/* sheet */
+.sheet-wrap{position:fixed;inset:0;background:rgba(29,27,59,.45);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;z-index:50}
+.sheet-wrap.open{opacity:1;pointer-events:auto}
+.sheet{width:min(680px,100%);max-height:86vh;overflow:auto;background:var(--paper);border:var(--bd);border-bottom:0;border-radius:24px 24px 0 0;padding:14px 24px 26px;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.9,.3,1.15)}
+.sheet-wrap.open .sheet{transform:none}
+.grab{width:50px;height:6px;border-radius:9px;background:#d9cdb8;margin:0 auto 14px}
+.sheet-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.sheet-head .av{width:50px;height:50px}
+.sheet-head h3{font-size:22px;font-weight:800;flex:1}
+.x{width:40px;height:40px;border-radius:12px;border:var(--bd);background:var(--paper);cursor:pointer;display:grid;place-items:center;box-shadow:2px 2px 0 var(--ink)}
+.x svg{width:18px;height:18px}
+.sheet-body p{line-height:1.8;font-weight:600;font-size:17px}
+.sheet-body p+p{margin-top:4px}
+.sheet-body pre.snip{margin-top:10px;font-size:15px;padding:12px 16px;border-radius:12px}
+.steps-mini{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:12px;direction:ltr;flex-wrap:wrap}
+.steps-mini .s{font-family:var(--mono);font-weight:600;font-size:15px;padding:7px 12px;border-radius:12px;background:var(--soft);border:2.5px solid var(--ink)}
+.steps-mini .s.g{background:#d4f7ec}
+.steps-mini .s.b{background:#ffe0e7;color:var(--bad)}
+.steps-mini svg{width:20px;height:20px}
+.sheet.big{width:min(1100px,96vw);height:min(90vh,calc(var(--s)*82));display:flex;flex-direction:column;padding:calc(var(--s)*1.6) calc(var(--s)*4) calc(var(--s)*3)}
+.sheet.big .sheet-head h3{font-size:calc(var(--s)*4)}
+.sheet.big .sheet-head .av{width:calc(var(--s)*7.5);height:calc(var(--s)*7.5)}
+.sheet.big .sheet-body{flex:1;min-height:0;display:flex;flex-direction:column}
+.nx{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.6);text-align:center}
+.nx .g{font-size:calc(var(--s)*3);font-weight:800}
+.nx .g b{background:var(--yellow);padding:0 8px;border-radius:8px}
+.nx svg{flex:1 1 0;min-height:calc(var(--s)*14);width:100%}
+.nx .tip{display:flex;align-items:center;gap:calc(var(--s)*1.4);background:#fffbea;border:var(--bd);border-radius:calc(var(--s)*2);padding:calc(var(--s)*1.2) calc(var(--s)*2.6);font-size:calc(var(--s)*2.8);font-weight:800;box-shadow:var(--sh)}
+.nx .tip svg{flex:none;width:calc(var(--s)*4);height:calc(var(--s)*4);min-height:0;color:var(--orange)}
+.nx .try{color:var(--muted);font-weight:700;font-size:calc(var(--s)*2.3)}
+.nx .try a{color:var(--blue);font-weight:800}
+
+@media(max-width:1000px) and (min-width:821px){.design{grid-template-columns:1fr 1fr}.trace{grid-column:1 / -1}}
+@media(max-width:820px),(max-height:480px){
+  :root{--s:6.4px}
+  .story,.split,.an-grid,.design{grid-template-columns:1fr;grid-template-rows:none;flex:none}
+  .bot{flex:none;height:280px}
+  .cups-row{flex:none;height:250px}
+  .an{min-height:220px}
+  .pseudo li{flex:none;height:44px}
+  .flow-card{height:480px}
+  .code{font-size:13px}
+  .imp-card{flex:none}
+  .mach{flex:none;height:100px}
+  .screen{padding:14px 14px 20px}
+  .hint-btn span,.nav-txt,.brand span{display:none}
+  .hint-btn{padding:8px}
+  .bottom,.top{padding:8px 12px}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="botHead">
+      <path d="M120 40 V20" stroke="#1d1b3b" stroke-width="4" stroke-linecap="round"/>
+      <circle class="ant" cx="120" cy="16" r="8" fill="#ff5a4e" stroke="#1d1b3b" stroke-width="3.5"/>
+      <rect x="50" y="76" width="14" height="28" rx="6" fill="#ff9f1c" stroke="#1d1b3b" stroke-width="3.5"/>
+      <rect x="176" y="76" width="14" height="28" rx="6" fill="#ff9f1c" stroke="#1d1b3b" stroke-width="3.5"/>
+      <rect x="60" y="40" width="120" height="96" rx="30" fill="#ffd23f" stroke="#1d1b3b" stroke-width="4"/>
+      <rect x="74" y="55" width="92" height="64" rx="18" fill="#1d1b3b"/>
+      <rect class="eye" x="92" y="70" width="14" height="20" rx="7" fill="#06d6a0"/>
+      <rect class="eye" x="134" y="70" width="14" height="20" rx="7" fill="#06d6a0"/>
+      <circle cx="84" cy="100" r="5" fill="#ff8fab" opacity=".8"/>
+      <circle cx="156" cy="100" r="5" fill="#ff8fab" opacity=".8"/>
+      <path d="M106 99 Q120 111 134 99" stroke="#06d6a0" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <circle cx="72" cy="48" r="2.5" fill="#1d1b3b"/><circle cx="168" cy="48" r="2.5" fill="#1d1b3b"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1b3b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg></div>
+      <div><b><span class="en">Swap</span>التبديل</b><span>Sheet #5 · Problem E</span></div>
+    </div>
+    <nav class="stepper" id="stepper"></nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- 1 -->
+    <section class="screen active" data-title="الفكرة">
+      <div class="screen-head">
+        <div><span class="kicker">المرحلة 1</span><h2>الفكرة: بدّل محتوى الكوبايتين</h2></div>
+        <p>من غير ما حاجة تضيع</p>
+      </div>
+      <div class="story">
+        <div class="hero">
+          <div class="bubble" id="botSay">أنا <b>بايت</b>! عايز أبدّل <b>محتوى</b> الكوبايتين<br>من غير ما أكبّ أي عصير</div>
+          <svg class="bot" viewBox="10 0 220 300" aria-label="بايت الروبوت">
+            <ellipse cx="120" cy="290" rx="66" ry="8" fill="rgba(29,27,59,.18)"/>
+            <rect x="82" y="250" width="30" height="30" rx="10" fill="#3a86ff" stroke="#1d1b3b" stroke-width="4"/>
+            <rect x="128" y="250" width="30" height="30" rx="10" fill="#3a86ff" stroke="#1d1b3b" stroke-width="4"/>
+            <rect x="74" y="272" width="44" height="14" rx="7" fill="#1d1b3b"/>
+            <rect x="122" y="272" width="44" height="14" rx="7" fill="#1d1b3b"/>
+            <path d="M74 176 Q46 186 40 214" stroke="#1d1b3b" stroke-width="16" fill="none" stroke-linecap="round"/>
+            <path d="M74 176 Q46 186 40 214" stroke="#3a86ff" stroke-width="9" fill="none" stroke-linecap="round"/>
+            <path d="M24 196 L28 240 H56 L60 196Z" fill="#fff" stroke="#1d1b3b" stroke-width="3.5" stroke-linejoin="round"/>
+            <path d="M25.5 210 L28 240 H56 L58.5 210Z" fill="#ff9f43"/>
+            <circle cx="42" cy="216" r="9" fill="#ff9f1c" stroke="#1d1b3b" stroke-width="3.5"/>
+            <g class="armR">
+              <path d="M166 176 Q196 168 204 140" stroke="#1d1b3b" stroke-width="16" fill="none" stroke-linecap="round"/>
+              <path d="M166 176 Q196 168 204 140" stroke="#3a86ff" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <path d="M186 100 L190 144 H218 L222 100Z" fill="#fff" stroke="#1d1b3b" stroke-width="3.5" stroke-linejoin="round"/>
+              <path d="M187.5 114 L190 144 H218 L220.5 114Z" fill="#ff6b9a"/>
+              <path d="M210 100 L214 84 L222 84" stroke="#1d1b3b" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="204" cy="140" r="9" fill="#ff9f1c" stroke="#1d1b3b" stroke-width="3.5"/>
+            </g>
+            <rect x="72" y="150" width="96" height="106" rx="24" fill="#3a86ff" stroke="#1d1b3b" stroke-width="4"/>
+            <rect x="88" y="168" width="64" height="44" rx="10" fill="#1d1b3b"/>
+            <circle cx="102" cy="183" r="5" fill="#ff9f43"/><circle cx="120" cy="183" r="5" fill="#ffd23f"/><circle cx="138" cy="183" r="5" fill="#ff6b9a"/>
+            <path d="M98 199 H142" stroke="#06d6a0" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="6 5"/>
+            <rect x="100" y="224" width="40" height="18" rx="9" fill="#ffd23f" stroke="#1d1b3b" stroke-width="3"/>
+            <rect x="106" y="134" width="28" height="18" rx="6" fill="#ff9f1c" stroke="#1d1b3b" stroke-width="3.5"/>
+            <use href="#botHead"/>
+          </svg>
+          <div class="char-name">بايت</div>
+        </div>
+        <div class="card game">
+          <div class="goal-row">
+            <span class="goal">الهدف: <span class="ltr">first</span> فيها <i class="jdot" style="background:#ff6b9a"></i> و <span class="ltr">second</span> فيها <i class="jdot" style="background:#ff9f43"></i></span>
+            <span class="controls"><button class="btn icon sndbtn" id="sndBtn" aria-label="الصوت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/><path class="x" d="M16 9l6 6M22 9l-6 6"/></svg></button><button class="btn icon" id="gameReset" aria-label="من الأول"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button></span>
+          </div>
+          <div class="game-hint" id="gameHint"></div>
+          <div class="cups-row" id="cupsRow"></div>
+          <div class="stmt" id="stmt"></div>
+          <div class="game-foot"><div class="log" id="gameLog"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="screen" data-title="التحليل">
+      <div class="screen-head">
+        <div><span class="kicker">المرحلة 2</span><h2>التحليل: نفهم المسألة حتة حتة</h2></div>
+      </div>
+      <div class="an-grid">
+        <div class="card an locked">
+          <div class="an-top"><div class="an-ic" style="background:#d4f7ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 20h16"/></svg></div><h3>المدخلات</h3><span class="num">01</span></div>
+          <div class="an-body">
+            <div class="mrow"><div class="mbox"><small>first</small><b>5</b></div><div class="mbox"><small>second</small><b>10</b></div></div>
+            <small>رقمين في سطر واحد</small>
+          </div>
+          <div class="q">?</div>
+        </div>
+        <div class="card an locked">
+          <div class="an-top"><div class="an-ic" style="background:#fff3c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h3>المخرجات</h3><span class="num">02</span></div>
+          <div class="an-body">
+            <div class="mrow"><div class="mbox ok"><small>first</small><b>10</b></div><div class="mbox ok"><small>second</small><b>5</b></div></div>
+            <small>نفس الرقمين، بس متبدّلين</small>
+          </div>
+          <div class="q">?</div>
+        </div>
+        <div class="card an locked">
+          <div class="an-top"><div class="an-ic" style="background:#ffe0e7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l10 18H2z"/><path d="M12 9v5M12 17.5v.5"/></svg></div><h3>الفخ</h3><span class="num">03</span></div>
+          <div class="an-body">
+            <div class="mini-code"><div>first = second</div><div>second = first</div></div>
+            <div class="mrow"><div class="mbox bad"><small>first</small><b>10</b></div><div class="mbox bad"><small>second</small><b>10</b></div></div>
+            <small class="warn">الـ <span class="ltr">5</span> ضاعت للأبد!</small>
+          </div>
+          <div class="q">?</div>
+        </div>
+        <div class="card an locked">
+          <div class="an-top"><div class="an-ic" style="background:#e3eeff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></div><h3>الحل</h3><span class="num">04</span></div>
+          <div class="an-body">
+            <div class="steps3"><span><b>1</b>temp = first</span><i>→</i><span><b>2</b>first = second</span><i>→</i><span><b>3</b>second = temp</span></div>
+            <div class="mrow"><div class="mbox ok"><small>first</small><b>10</b></div><div class="mbox ok"><small>second</small><b>5</b></div><div class="mbox tmp"><small>temp</small><b>5</b></div></div>
+            <small>كوباية تالتة فاضية اسمها <span class="ltr">temp</span> (مؤقت)</small>
+          </div>
+          <div class="q">?</div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="av"><svg viewBox="48 4 144 136"><use href="#botHead"/></svg></div>
+        <div class="txt" id="anSay"></div>
+        <div class="controls">
+          <button class="btn primary" id="anNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span id="anNextTxt">اكشف</span></button>
+          <button class="btn icon" id="anReset" aria-label="من الأول"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="screen" data-title="التصميم">
+      <div class="screen-head">
+        <div><span class="kicker">المرحلة 3</span><h2>التصميم: نبني الحل خطوة بخطوة</h2></div>
+        <p>كل ضغطة = سطر سودو كود + شكل في الفلوتشارت</p>
+      </div>
+      <div class="design">
+        <div class="card pseudo-card">
+          <span class="label">السودو كود</span>
+          <ol class="pseudo" id="pseudo">
+            <li><span class="n">1</span>ابدأ</li>
+            <li><span class="n">2</span>اقرأ <code>first</code> و <code>second</code></li>
+            <li class="sw"><span class="n">3</span><code>temp ← first</code><span class="tag">احفظ</span></li>
+            <li class="sw"><span class="n">4</span><code>first ← second</code><span class="tag">انسخ</span></li>
+            <li class="sw"><span class="n">5</span><code>second ← temp</code><span class="tag">رجّع</span></li>
+            <li><span class="n">6</span>اطبع <code>first</code> و <code>second</code></li>
+            <li><span class="n">7</span>انتهي</li>
+          </ol>
+          <div class="progress"><i id="buildBar"></i></div>
+        </div>
+        <div class="card flow-card">
+          <svg id="flow" viewBox="30 4 350 566">
+            <defs>
+              <marker id="arD" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1d1b3b"/></marker>
+              <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a4e"/></marker>
+            </defs>
+            <g class="node grp" id="g-sw"><rect x="52" y="160" width="306" height="252" rx="18"/><text x="346" y="180">التبديل في 3 خطوات</text></g>
+            <g class="edge" id="e-1"><path pathLength="100" d="M205 64 V90"/></g>
+            <g class="edge" id="e-2"><path pathLength="100" d="M205 138 V190"/></g>
+            <g class="edge" id="e-3"><path pathLength="100" d="M205 238 V270"/></g>
+            <g class="edge" id="e-4"><path pathLength="100" d="M205 318 V350"/></g>
+            <g class="edge" id="e-5"><path pathLength="100" d="M205 398 V444"/></g>
+            <g class="edge" id="e-6"><path pathLength="100" d="M205 492 V516"/></g>
+            <g class="node" id="n-start"><rect class="sh" x="155" y="20" width="100" height="44" rx="22"/><text x="205" y="42">ابدأ</text></g>
+            <g class="node" id="n-in"><path class="sh" d="M118 92 H312 L292 136 H98Z"/><text x="205" y="114">اقرأ first و second</text></g>
+            <g class="node" id="n-p1"><rect class="sh" x="110" y="192" width="190" height="46" rx="10"/><text x="205" y="215" class="mono" direction="ltr">temp ← first</text><circle class="badge-c" cx="88" cy="215" r="13"/><text x="88" y="216" class="badge-t">1</text></g>
+            <g class="node" id="n-p2"><rect class="sh" x="110" y="272" width="190" height="46" rx="10"/><text x="205" y="295" class="mono" direction="ltr">first ← second</text><circle class="badge-c" cx="88" cy="295" r="13"/><text x="88" y="296" class="badge-t">2</text></g>
+            <g class="node" id="n-p3"><rect class="sh" x="110" y="352" width="190" height="46" rx="10"/><text x="205" y="375" class="mono" direction="ltr">second ← temp</text><circle class="badge-c" cx="88" cy="375" r="13"/><text x="88" y="376" class="badge-t">3</text></g>
+            <g class="node" id="n-out"><path class="sh" d="M118 446 H312 L292 490 H98Z"/><text x="205" y="468">اطبع first و second</text></g>
+            <g class="node" id="n-end"><rect class="sh" x="155" y="518" width="100" height="44" rx="22"/><text x="205" y="540">انتهي</text></g>
+          </svg>
+        </div>
+        <div class="card trace locked" id="trace">
+          <div><span class="label">جرّب على مثال</span><div class="chips" id="flowChips"></div></div>
+          <button class="btn blue" id="flowRun"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>تشغيل</button>
+          <div><span class="label">الذاكرة</span><div class="mrow" id="fMem"></div></div>
+          <div><span class="label">الخطوة الحالية</span><div class="expr-box" id="fExpr">—</div></div>
+          <div><span class="label">المخرج</span><div class="result" id="fOut"></div></div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="av"><svg viewBox="48 4 144 136"><use href="#botHead"/></svg></div>
+        <div class="txt" id="dsSay"></div>
+        <div class="controls">
+          <button class="btn primary" id="bNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="bNextTxt"></span></button>
+          <button class="btn" id="bAll">ابني الكل</button>
+          <button class="btn icon" id="bReset" aria-label="امسح وابني من الأول"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="screen" data-title="التنفيذ">
+      <div class="screen-head">
+        <div><span class="kicker">المرحلة 4</span><h2>التنفيذ: الكود جوه الجهاز</h2></div>
+        <div class="chips" id="ideChips"></div>
+      </div>
+      <div class="split">
+        <div class="ide">
+          <div class="ide-bar"><span class="d" style="background:#ff5f57"></span><span class="d" style="background:#febc2e"></span><span class="d" style="background:#28c840"></span><span class="tab">swap.py</span></div>
+          <div class="code" id="code"></div>
+        </div>
+        <div class="card mem">
+          <div><span class="label">الذاكرة</span><div class="mrow" id="memVars"></div></div>
+          <div><span class="label">خطوات التبديل</span>
+            <div class="stps" id="stps">
+              <div class="stp"><b>1. احفظ</b><span>temp = first</span></div>
+              <div class="stp"><b>2. انسخ</b><span>first = second</span></div>
+              <div class="stp"><b>3. رجّع</b><span>second = temp</span></div>
+            </div>
+          </div>
+          <div><span class="label">إيه اللي اتنسخ؟</span><div class="calc" id="copyLane"></div></div>
+          <div><span class="label">الشاشة</span><div class="console"><span class="pr">&gt;&gt;&gt;</span><span id="conOut"></span></div></div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="av"><svg viewBox="48 4 144 136"><use href="#botHead"/></svg></div>
+        <div class="txt" id="ideSay"></div>
+        <div class="controls">
+          <button class="btn primary" id="ideStep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>خطوة</button>
+          <button class="btn blue" id="ideRun"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg><span>تشغيل تلقائي</span></button>
+          <button class="btn icon sndbtn" aria-label="الصوت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/><path class="x" d="M16 9l6 6M22 9l-6 6"/></svg></button><button class="btn icon" id="ideReset" aria-label="من الأول"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="screen" data-title="الاختبار">
+      <div class="screen-head">
+        <div><span class="kicker">المرحلة 5</span><h2>الاختبار: جرّب أي رقمين</h2></div>
+        <p>اكتب رقمين وشوف النتيجة</p>
+      </div>
+      <div class="split">
+        <div class="card tside">
+          <div>
+            <span class="label">Input</span>
+            <div class="test-in">
+              <input class="field" id="tIn" value="5 10" spellcheck="false" autocomplete="off">
+              <button class="btn blue" id="tRun"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>شغّل</button>
+            </div>
+            <div class="err" id="tErr"></div>
+          </div>
+          <div><span class="label">أمثلة جاهزة</span><div class="chips" id="tChips"></div></div>
+          <div class="controls"><button class="btn" id="tRand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>رقمين عشوائي</button></div>
+          <div class="outbox"><div class="lbl">Output</div><div class="val" id="tOut"></div></div>
+        </div>
+        <div class="card tgrid" id="tGrid"></div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="screen" data-title="التطوير">
+      <div class="screen-head">
+        <div><span class="kicker">المرحلة 6</span><h2>التطوير: نخلي الحل أحسن</h2></div>
+        <div class="seg" id="seg">
+          <button class="on" data-v="0">بـ temp <b>5</b></button>
+          <button data-v="1">اختصار بايثون <b>3</b></button>
+        </div>
+      </div>
+      <div class="split">
+        <div class="ide">
+          <div class="ide-bar"><span class="d" style="background:#ff5f57"></span><span class="d" style="background:#febc2e"></span><span class="d" style="background:#28c840"></span><span class="tab" id="impTab">swap.py</span></div>
+          <div class="code" id="impCode"></div>
+        </div>
+        <div class="imp-side">
+          <div class="card imp-card next-card">
+            <h3><span class="an-ic" style="background:#ffe0e7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7M3 12h11M3 18h15"/><path d="M19 4v8M16 9l3 3 3-3"/></svg></span>التحدي الجاي: Sort Numbers</h3>
+            <p>3 أرقام ملخبطة، ومطلوب ترتّبهم من الصغير للكبير. فكرة الـ Swap هتنفعك هنا!</p>
+            <svg class="mach" viewBox="0 0 420 150" direction="ltr" font-family="Fira Code" font-weight="700">
+              <path d="M20 30 L30 130 H100 L110 30Z" fill="#fff" stroke="#1d1b3b" stroke-width="4" stroke-linejoin="round"/><path d="M23 60 L30 130 H100 L107 60Z" fill="#ff9f43"/><text x="65" y="102" text-anchor="middle" fill="#1d1b3b" font-size="32">9</text>
+              <path d="M155 30 L165 130 H235 L245 30Z" fill="#fff" stroke="#1d1b3b" stroke-width="4" stroke-linejoin="round"/><path d="M158 60 L165 130 H235 L242 60Z" fill="#ff6b9a"/><text x="200" y="102" text-anchor="middle" fill="#1d1b3b" font-size="32">2</text>
+              <path d="M290 30 L300 130 H370 L380 30Z" fill="#fff" stroke="#1d1b3b" stroke-width="4" stroke-linejoin="round"/><path d="M293 60 L300 130 H370 L377 60Z" fill="#7cc4ff"/><text x="335" y="102" text-anchor="middle" fill="#1d1b3b" font-size="32">5</text>
+              <path d="M70 20 Q132 -6 194 20" stroke="#ff5a4e" stroke-width="4" fill="none" stroke-dasharray="7 6"/><path d="M184 12 L196 21 L182 26" stroke="#ff5a4e" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="controls"><button class="btn primary" id="nextBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>شوف التلميح</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bottom">
+    <button class="btn" id="prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg><span class="nav-txt">السابق</span></button>
+    <div class="hints" id="hints"></div>
+    <button class="btn primary" id="next"><span class="nav-txt">التالي</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+  </footer>
+</div>
+
+<div class="sheet-wrap" id="sheetWrap">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <div class="av"><svg viewBox="48 4 144 136"><use href="#botHead"/></svg></div>
+      <h3 id="sheetTitle"></h3>
+      <button class="x" id="sheetClose" aria-label="إغلاق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<script>
+const SAMPLES = ["5 10", "1 2", "-7 3"];
+const $ = id => document.getElementById(id);
+const retrigger = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+const show = v => v === null || v === undefined ? '—' : String(v);
+function parse(str){
+  const t = str.trim().split(/\s+/);
+  if (t.length !== 2 || !t.every(x => /^-?\d+$/.test(x))) return null;
+  return t.map(x => x.replace(/^(-?)0+(?=\d)/, '$1'));
+}
+const mbox = (name, val, cls = '') =>
+  `<div class="mbox ${cls}${val === null || val === undefined ? ' empty' : ''}"><small>${name}</small><b>${show(val)}</b></div>`;
+
+/* ---------- navigation ---------- */
+const screens = [...document.querySelectorAll('.screen')];
+let cur = 0;
+screens.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.className = 'step-btn';
+  b.innerHTML = `<i>${i+1}</i><span>${s.dataset.title}</span>`;
+  b.onclick = () => go(i);
+  $('stepper').appendChild(b);
+});
+function go(i){
+  if (i < 0 || i >= screens.length || i === cur) return;
+  screens[cur].classList.remove('active');
+  screens[i].classList.add('active');
+  cur = i;
+  syncNav();
+  if (cur !== 2){ stopFlow(); stopBuildAll(); }
+  if (cur !== 3) stopIde();
+}
+function syncNav(){
+  [...$('stepper').children].forEach((b, i) => { b.classList.toggle('active', i === cur); b.classList.toggle('done', i < cur); });
+  $('prev').disabled = cur === 0;
+  $('next').disabled = cur === screens.length - 1;
+  if (cur !== 0) $('next').classList.remove('pulse');
+}
+$('prev').onclick = () => go(cur - 1);
+$('next').onclick = () => go(cur + 1);
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape') return closeSheet();
+  if ($('sheetWrap').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft') go(cur + 1);
+  if (e.key === 'ArrowRight') go(cur - 1);
+});
+syncNav();
+
+/* ---------- 1. cup game ---------- */
+const CUP_ORDER = ['first', 'temp', 'second'];
+const COLORS = { '5':'#ff9f43', '10':'#ff6b9a' };
+const JNAME = { '5':'البرتقان', '10':'الفراولة' };
+let game;
+const cupEls = {};
+CUP_ORDER.forEach(n => {
+  const b = document.createElement('button');
+  b.className = 'cupbox' + (n === 'temp' ? ' tmp' : '');
+  b.setAttribute('aria-label', 'كوباية ' + n);
+  b.innerHTML = `<svg viewBox="0 0 120 150">
+      <path class="bgl" d="M8 8 L22 142 H98 L112 8Z"/>
+      <path class="liq empty" d="M13 46 L22 142 H98 L107 46Z"/>
+      <path class="glass" d="M8 8 L22 142 H98 L112 8Z"/>
+      <path class="shine" d="M22 22 L28 22 L34 126 L29 126Z"/>
+      <text class="val" x="60" y="98"></text>
+    </svg><span class="nm">${n}</span>`;
+  b.onclick = () => pickCup(n);
+  cupEls[n] = b;
+  $('cupsRow').appendChild(b);
+});
+function renderCups(){
+  CUP_ORDER.forEach(n => {
+    const el = cupEls[n], v = game.vals[n], liq = el.querySelector('.liq');
+    liq.classList.toggle('empty', v === null);
+    if (v !== null) liq.style.fill = COLORS[v];
+    const t = el.querySelector('.val');
+    t.textContent = '';
+    t.classList.remove('fade');
+    el.classList.toggle('target', picked === n);
+    el.disabled = game.over || busy;
+  });
+  $('stmt').innerHTML = `<span class="sl">?</span><span>=</span>${picked ? `<span class="sl fill">${picked}</span>` : '<span class="sl">?</span>'}`;
+  $('gameLog').innerHTML = game.log.length
+    ? game.log.map(l => `<span class="${l.cls || ''}">${l.t}</span>`).join('')
+    : '<em>خطواتك هتظهر هنا كسطور كود</em>';
+  $('gameReset').disabled = busy;
+}
+function setHint(html, cls = ''){ $('gameHint').className = 'game-hint ' + cls; $('gameHint').innerHTML = html; }
+let picked = null, busy = false;
+function resetGame(){
+  game = { vals:{ first:'5', temp:null, second:'10' }, log:[], over:false };
+  picked = null;
+  setHint('دوس على الكوباية اللي <b>هتصب منها</b>، وبعدين اللي <b>هتتصب فيها</b>');
+  $('botSay').innerHTML = 'أنا <b>بايت</b>! عايز أبدّل <b>محتوى</b> الكوبايتين<br>من غير ما أكبّ أي عصير';
+  renderCups();
+}
+
+/* ----- sounds (Web Audio, no files) ----- */
+let actx = null, soundOn = true, noiseBuf = null;
+function ac(){
+  if (!soundOn) return null;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    if (!noiseBuf){
+      noiseBuf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    return actx;
+  } catch (e) { return null; }
+}
+/* juice pouring into a cup: soft stream hiss + rising liquid bubbles, ends exactly at dur */
+function pourSound(dur){
+  const c = ac(); if (!c) return;
+  const t0 = c.currentTime + 0.02, t1 = t0 + dur;
+  const out = c.createGain();
+  out.gain.setValueAtTime(0, t0);
+  out.gain.linearRampToValueAtTime(1, t0 + 0.06);
+  out.gain.setValueAtTime(1, t1 - 0.14);
+  out.gain.linearRampToValueAtTime(0, t1);
+  out.connect(c.destination);
+  const n = c.createBufferSource(); n.buffer = noiseBuf; n.loop = true;
+  const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.8;
+  bp.frequency.setValueAtTime(500, t0); bp.frequency.linearRampToValueAtTime(1300, t1);
+  const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200;
+  const hiss = c.createGain(); hiss.gain.value = 0.16;
+  n.connect(bp); bp.connect(lp); lp.connect(hiss); hiss.connect(out);
+  n.start(t0); n.stop(t1 + 0.05);
+  const count = Math.round(dur * 42);
+  for (let i = 0; i < count; i++){
+    const t = t0 + Math.random() * (dur - 0.06);
+    const prog = (t - t0) / dur;
+    const f = (260 + Math.random() * 520) * (1 + prog * 1.1);
+    const len = 0.025 + Math.random() * 0.045;
+    const o = c.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(f, t);
+    o.frequency.exponentialRampToValueAtTime(f * (1.6 + Math.random() * 0.8), t + len);
+    const g = c.createGain();
+    const peak = 0.05 + Math.random() * 0.09;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + len + 0.01);
+  }
+}
+/* data moving in memory: short digital whoosh */
+function moveSound(dur = 0.6){
+  const c = ac(); if (!c) return;
+  const t0 = c.currentTime + 0.01, t1 = t0 + dur;
+  const n = c.createBufferSource(); n.buffer = noiseBuf; n.loop = true;
+  const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 6;
+  bp.frequency.setValueAtTime(500, t0); bp.frequency.exponentialRampToValueAtTime(2600, t0 + dur * .55); bp.frequency.exponentialRampToValueAtTime(900, t1);
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.32, t0 + dur * .45); g.gain.exponentialRampToValueAtTime(0.0001, t1);
+  n.connect(bp); bp.connect(g); g.connect(c.destination);
+  n.start(t0); n.stop(t1 + 0.02);
+}
+/* value lands in a memory box */
+function landSound(){
+  const c = ac(); if (!c) return;
+  const t = c.currentTime + 0.005;
+  [[660, 0], [990, 0.06]].forEach(([f, d]) => {
+    const o = c.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(f, t + d);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.18, t + d + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.12);
+    o.connect(g); g.connect(c.destination); o.start(t + d); o.stop(t + d + 0.14);
+  });
+}
+/* old value erased */
+function eraseSound(){
+  const c = ac(); if (!c) return;
+  const t = c.currentTime + 0.005;
+  const o = c.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(320, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.22);
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.26);
+}
+function setSound(on){ soundOn = on; document.querySelectorAll('.sndbtn').forEach(b => b.classList.toggle('off', !on)); }
+document.querySelectorAll('.sndbtn').forEach(b => b.onclick = () => setSound(!soundOn));
+
+/* ----- pour animation ----- */
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function glassBox(el){
+  const r = el.querySelector('svg').getBoundingClientRect();
+  const k = Math.min(r.width / 120, r.height / 150);
+  return { k, x: r.left + (r.width - 120 * k) / 2, y: r.top + (r.height - 150 * k) / 2 };
+}
+async function pourAnim(from, to, color){
+  const sEl = cupEls[from], tEl = cupEls[to];
+  const S = glassBox(sEl), T = glassBox(tEl);
+  const dir = T.x > S.x ? 1 : -1;
+  const lipX = S.x + (dir > 0 ? 112 : 8) * S.k, lipY = S.y + 8 * S.k;
+  const destX = T.x + 60 * T.k - dir * 8 * T.k, destY = T.y - 34 * T.k;
+  const br = sEl.getBoundingClientRect();
+  sEl.style.transformOrigin = `${lipX - br.left}px ${lipY - br.top}px`;
+  sEl.classList.add('moving');
+  const mv = `translate(${destX - lipX}px, ${destY - lipY}px)`;
+  sEl.style.transform = mv;
+  await wait(560);
+  sEl.style.transition = 'transform .38s ease-in-out';
+  sEl.style.transform = `${mv} rotate(${dir * 78}deg)`;
+  await wait(400);
+
+  const DUR = 1500;
+  const st = document.createElement('div');
+  st.className = 'stream';
+  const w = Math.max(6, 9 * T.k);
+  const bottom = T.y + 128 * T.k;
+  Object.assign(st.style, {
+    left: (destX - w / 2) + 'px', top: destY + 'px', width: w + 'px', height: (bottom - destY) + 'px',
+    backgroundColor: color,
+    backgroundImage: 'repeating-linear-gradient(180deg, rgba(255,255,255,.28) 0 6px, transparent 6px 13px)'
+  });
+  document.body.appendChild(st);
+  void st.offsetWidth;
+  st.classList.add('on');
+  pourSound(DUR / 1000);
+
+  const sLiq = sEl.querySelector('.liq'), tLiq = tEl.querySelector('.liq');
+  [sLiq, tLiq].forEach(l => l.style.transition = `transform ${DUR}ms linear, fill .3s`);
+  sEl.querySelector('.val').classList.add('fade');
+  tEl.querySelector('.val').classList.add('fade');
+  tLiq.style.fill = color;
+  if (!tLiq.classList.contains('empty')){ tLiq.classList.add('empty'); }
+  void tLiq.getBoundingClientRect();
+  setTimeout(() => { sLiq.classList.add('empty'); tLiq.classList.remove('empty'); }, 30);
+  await wait(DUR);
+
+  st.classList.remove('on'); st.classList.add('off');
+  await wait(170);
+  st.remove();
+  sEl.style.transition = '';
+  sEl.style.transform = '';
+  await wait(580);
+  sEl.classList.remove('moving');
+  sEl.style.transformOrigin = '';
+  [sLiq, tLiq].forEach(l => l.style.transition = '');
+}
+
+async function pickCup(n){
+  if (game.over || busy) return;
+  if (picked === null){
+    if (game.vals[n] === null){ setHint('الكوباية دي فاضية، مفيش حاجة تتصب منها', 'bad'); retrigger(cupEls[n], 'shake'); return; }
+    picked = n;
+    setHint(`هتصب من <b>${n}</b>. دلوقتي دوس على الكوباية اللي هتتصب فيها`);
+    return renderCups();
+  }
+  if (n === picked){ picked = null; setHint('اتلغى. دوس على الكوباية اللي <b>هتصب منها</b>'); return renderCups(); }
+  const from = picked, to = n, val = game.vals[from], overwritten = game.vals[to];
+  picked = null; busy = true;
+  renderCups();
+  setHint(`بنصب <b>${from}</b> في <b>${to}</b>...`);
+  $('stmt').innerHTML = `<span class="sl fill">${to}</span><span>=</span><span class="sl fill">${from}</span>`;
+  await pourAnim(from, to, COLORS[val]);
+  game.vals[to] = val;
+  game.vals[from] = null;
+  game.log.push({ t:`${to} = ${from}` });
+  busy = false;
+  if (overwritten !== null){
+    game.over = true;
+    game.log[game.log.length - 1].cls = 'bad';
+    setHint(`اتكبّ! <b>${to}</b> كانت مليانة، فعصير ${JNAME[overwritten]} ضاع`, 'bad');
+    $('botSay').innerHTML = 'أوبس! عصير اتكبّ<br>دوس زرار الإعادة وجرّب تاني';
+    retrigger($('botSay'), 'pop');
+    retrigger($('cupsRow'), 'shake');
+  } else if (game.vals.first === '10' && game.vals.second === '5'){
+    game.over = true;
+    game.log[game.log.length - 1].cls = 'good';
+    const k = game.log.length;
+    setHint(k === 3 ? 'برافو! 3 صبّات بس، وده أقل عدد ممكن' : `برافو! عملتها في ${k} صبّات`, 'ok');
+    $('botSay').innerHTML = 'كده عملت <b>Swap</b>!<br>والكوباية الفاضية كانت السر';
+    retrigger($('botSay'), 'pop');
+    $('next').classList.add('pulse');
+  } else setHint('تمام. دوس على الكوباية اللي <b>هتصب منها</b> بعد كده');
+  renderCups();
+}
+$('gameReset').onclick = resetGame;
+resetGame();
+
+/* ---------- 2. analysis ---------- */
+const anCards = [...document.querySelectorAll('.an')];
+const AN_SAY = [
+  'قبل الكود، لازم نفهم المسألة. دوس "اكشف"',
+  'داخل لنا رقمين: نسميهم <span class="ltr">first</span> و <span class="ltr">second</span>',
+  'المطلوب نطبعهم بعد ما يتبدّلوا',
+  'لو كتبنا <span class="ltr">first = second</span> على طول، الـ 5 اللي كانت في first بتتمسح',
+  'الحل: نحفظ first الأول في <span class="ltr">temp</span>، وبعدين نبدّل براحتنا'
+];
+let an = 0;
+function renderAn(){
+  anCards.forEach((c, i) => { c.classList.toggle('locked', i >= an); c.classList.toggle('fresh', i === an - 1); });
+  $('anSay').innerHTML = AN_SAY[an];
+  $('anNextTxt').innerHTML = an >= 4 ? 'يلا للتصميم' : `اكشف <span class="ltr">(${an}/4)</span>`;
+}
+$('anNext').onclick = () => { if (an >= 4) return go(2); an++; renderAn(); };
+$('anReset').onclick = () => { an = 0; renderAn(); };
+renderAn();
+
+/* ---------- 3. design ---------- */
+const BUILD = [
+  { els:['n-start'],           say:'كل برنامج ليه بداية' },
+  { els:['e-1','n-in'],        say:'نقرا الرقمين في first و second (متوازي الأضلاع = إدخال)' },
+  { els:['g-sw','e-2','n-p1'], say:'خطوة 1: نحفظ first في temp عشان ماتضيعش' },
+  { els:['e-3','n-p2'],        say:'خطوة 2: دلوقتي نقدر ننسخ second في first بأمان' },
+  { els:['e-4','n-p3'],        say:'خطوة 3: نرجّع القيمة القديمة من temp لـ second' },
+  { els:['e-5','n-out'],       say:'نطبع الرقمين بعد التبديل' },
+  { els:['e-6','n-end'],       say:'التصميم خلص! اختار مثال ودوس "تشغيل"' }
+];
+const NODE_LINE = { 'n-start':0, 'n-in':1, 'n-p1':2, 'n-p2':3, 'n-p3':4, 'n-out':5, 'n-end':6 };
+const pLines = [...document.querySelectorAll('#pseudo li')];
+let built = 0, buildAllTimer = null;
+function buildStep(){
+  if (built >= BUILD.length) return;
+  document.querySelectorAll('#flow .fresh, #pseudo .fresh').forEach(el => el.classList.remove('fresh'));
+  const step = BUILD[built];
+  pLines[built].classList.add('show', 'fresh');
+  step.els.forEach((id, k) => setTimeout(() => {
+    $(id).classList.add('show');
+    if (id.startsWith('n-')) $(id).classList.add('fresh');
+  }, k * 260));
+  $('dsSay').innerHTML = step.say;
+  built++;
+  syncBuild();
+}
+function syncBuild(){
+  $('buildBar').style.width = (built / BUILD.length * 100) + '%';
+  const done = built >= BUILD.length;
+  $('bNext').disabled = done; $('bAll').disabled = done;
+  $('bNextTxt').innerHTML = `ابني <span class="ltr">(${built}/${BUILD.length})</span>`;
+  $('trace').classList.toggle('locked', !done);
+  if (done) setTimeout(() => document.querySelectorAll('#flow .fresh').forEach(el => el.classList.remove('fresh')), 900);
+}
+function stopBuildAll(){ clearInterval(buildAllTimer); buildAllTimer = null; }
+function resetBuild(){
+  stopBuildAll(); stopFlow(); resetTrace();
+  built = 0;
+  pLines.forEach(li => li.classList.remove('show','fresh','cur'));
+  document.querySelectorAll('#flow .node,#flow .edge').forEach(el => el.classList.remove('show','fresh'));
+  $('dsSay').innerHTML = 'يلا نبني الحل سوا. دوس "ابني"';
+  syncBuild();
+}
+$('bNext').onclick = () => { stopBuildAll(); buildStep(); };
+$('bAll').onclick = () => {
+  if (buildAllTimer) return;
+  buildStep();
+  buildAllTimer = setInterval(() => { if (built >= BUILD.length) return stopBuildAll(); buildStep(); }, 650);
+};
+$('bReset').onclick = resetBuild;
+
+let flowInput = SAMPLES[0], ideInput = SAMPLES[0], custom = null, flowTimer = null;
+function renderFMem(m, changed){
+  $('fMem').innerHTML = ['first','second','temp'].map(n => mbox(n, m[n], (n === 'temp' ? 'tmp ' : '') + (n === changed ? 'cur' : ''))).join('');
+}
+function resetTrace(){
+  document.querySelectorAll('#flow .on,#flow .visited').forEach(el => el.classList.remove('on','visited'));
+  pLines.forEach(li => li.classList.remove('cur'));
+  renderFMem({ first:null, second:null, temp:null });
+  $('fExpr').textContent = '—';
+  $('fOut').className = 'result'; $('fOut').textContent = '';
+}
+function stopFlow(){ clearTimeout(flowTimer); flowTimer = null; $('flowRun').disabled = false; }
+function runFlow(){
+  stopFlow(); resetTrace();
+  const [a, b] = parse(flowInput);
+  const m = { first:null, second:null, temp:null };
+  const q = [
+    { n:'n-start' }, { e:'e-1' },
+    { n:'n-in', fx:() => { m.first = a; m.second = b; return [null, `first = ${a} , second = ${b}`]; } }, { e:'e-2' },
+    { n:'n-p1', fx:() => { m.temp = m.first;  return ['temp',   `temp ← ${m.temp}`]; } }, { e:'e-3' },
+    { n:'n-p2', fx:() => { m.first = m.second; return ['first', `first ← ${m.first}`]; } }, { e:'e-4' },
+    { n:'n-p3', fx:() => { m.second = m.temp; return ['second', `second ← ${m.second}`]; } }, { e:'e-5' },
+    { n:'n-out', out:true }, { e:'e-6' }, { n:'n-end' }
+  ];
+  let k = 0;
+  $('flowRun').disabled = true;
+  $('dsSay').innerHTML = `بنمشي على الفلوتشارت بالمدخل <span class="ltr">${flowInput}</span>`;
+  const tick = () => {
+    if (k >= q.length){
+      flowTimer = null; $('flowRun').disabled = false;
+      $('dsSay').innerHTML = 'خلصنا! لاحظ إن temp حفظت القيمة القديمة. جرّب مثال تاني';
+      return;
+    }
+    const s = q[k++];
+    document.querySelectorAll('#flow .on').forEach(el => el.classList.remove('on'));
+    $(s.n || s.e).classList.add('on', 'visited');
+    if (s.n){ pLines.forEach(li => li.classList.remove('cur')); pLines[NODE_LINE[s.n]].classList.add('cur'); }
+    if (s.fx){ const [ch, txt] = s.fx(); renderFMem(m, ch); $('fExpr').textContent = txt; retrigger($('fExpr'), 'pop'); }
+    if (s.out){ $('fOut').textContent = `${m.first} ${m.second}`; $('fOut').className = 'result yes'; $('fExpr').textContent = 'print(first, second)'; }
+    flowTimer = setTimeout(tick, s.e ? 300 : 750);
+  };
+  tick();
+}
+$('flowRun').onclick = runFlow;
+resetBuild();
+
+/* ---------- chips ---------- */
+function renderChips(box, active, onPick){
+  const list = [...SAMPLES];
+  if (custom && !list.includes(custom)) list.push(custom);
+  box.innerHTML = '';
+  list.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (s === active ? ' active' : '') + (SAMPLES.includes(s) ? '' : ' custom');
+    b.textContent = s;
+    b.onclick = () => onPick(s);
+    box.appendChild(b);
+  });
+}
+function refreshChips(){
+  renderChips($('flowChips'), flowInput, s => { flowInput = s; stopFlow(); resetTrace(); refreshChips(); });
+  renderChips($('ideChips'), ideInput, s => { if (ideBusy) return; ideInput = s; stopIde(); resetIde(); refreshChips(); });
+  renderChips($('tChips'), $('tIn').value.trim().replace(/\s+/g, ' '), s => { $('tIn').value = s; runTest(); });
+}
+
+/* ---------- 4. ide ---------- */
+const F = '<span class="v1">first</span>', S = '<span class="v2">second</span>', T = '<span class="v3">temp</span>';
+const READ = `${F}, ${S} = <span class="sf">map</span>(<span class="sf">int</span>, <span class="sf">input</span>().<span class="sf">split</span>())`;
+const CODE = [
+  READ,
+  ``,
+  `${T} = ${F}        <span class="sc"># 1</span>`,
+  `${F} = ${S}      <span class="sc"># 2</span>`,
+  `${S} = ${T}       <span class="sc"># 3</span>`,
+  ``,
+  `<span class="sf">print</span>(${F}, ${S})`
+];
+const SHORT = [
+  READ,
+  `${F}, ${S} = ${S}, ${F}`,
+  `<span class="sf">print</span>(${F}, ${S})`
+];
+const codeHTML = lines => lines.map((l, i) => `<div class="ln"><span class="no">${i+1}</span><span>${l || ' '}</span></div>`).join('');
+$('code').innerHTML = codeHTML(CODE);
+const lnEls = [...$('code').querySelectorAll('.ln')];
+
+let ideSteps = [], idePos = -1, ideTimer = null, ideBusy = false;
+const ADDR = { first:'0x01', second:'0x02', temp:'0x03' };
+function ideBuild([a, b]){
+  return [
+    { line:0, step:0, anim:{ from:'line', to:['first','second'] },
+      say:`بنحجز صندوقين في الذاكرة، ونحط <span class="ltr">${a}</span> في first و <span class="ltr">${b}</span> في second`,
+      fx:m => { m.first = a; m.second = b; m.ch = ['first','second']; m.copy = null; } },
+    { line:2, step:1, anim:{ from:'first', to:'temp' },
+      say:'خطوة 1: بنحجز صندوق temp، ونبعتله نسخة من قيمة first',
+      fx:m => { m.temp = m.first; m.ch = ['temp']; m.copy = ['first', 'temp', m.temp]; } },
+    { line:3, step:2, anim:{ from:'second', to:'first' },
+      say:'خطوة 2: نسخة من second بتروح first، والقيمة القديمة بتتمسح. بس هي لسه في temp',
+      fx:m => { m.first = m.second; m.ch = ['first']; m.copy = ['second', 'first', m.first]; } },
+    { line:4, step:3, anim:{ from:'temp', to:'second' },
+      say:'خطوة 3: نسخة من temp بترجع لـ second. التبديل خلص!',
+      fx:m => { m.second = m.temp; m.ch = ['second']; m.copy = ['temp', 'second', m.second]; } },
+    { line:6, step:4, anim:{ from:['first','second'], to:'console' },
+      say:`<span class="ltr">print</span> بيبعت نسخة من القيمتين للشاشة: <span class="ltr">${b} ${a}</span>`,
+      fx:m => { m.out = `${m.first} ${m.second}`; m.ch = []; m.copy = null; } }
+  ];
+}
+function stateAt(k){
+  const m = { first:null, second:null, temp:null, ch:[], copy:null, out:'' };
+  for (let i = 0; i <= k; i++) ideSteps[i].fx(m);
+  return m;
+}
+function memBox(n, v, cls){
+  return `<div class="mbox ${cls}${v === null ? ' empty' : ''}" data-v="${n}"><small>${n}</small><b>${show(v)}<span class="addr">${v === null && n === 'temp' ? 'مش محجوز' : ADDR[n]}</span></b></div>`;
+}
+function renderIde(memK = idePos, landed = true){
+  const m = stateAt(memK);
+  const ran = new Set();
+  for (let k = 0; k <= idePos; k++) ran.add(ideSteps[k].line);
+  const st = ideSteps[idePos];
+  lnEls.forEach((el, i) => { el.classList.toggle('cur', !!st && st.line === i); el.classList.toggle('ran', ran.has(i)); });
+  $('memVars').innerHTML = ['first','second','temp'].map(n =>
+    memBox(n, m[n], (n === 'temp' ? 'tmp ' : '') + (landed && m.ch.includes(n) ? 'cur' : ''))).join('');
+  const stepNow = st ? st.step : 0;
+  [...$('stps').children].forEach((el, i) => {
+    el.classList.toggle('on', stepNow === i + 1);
+    el.classList.toggle('done', stepNow > i + 1);
+  });
+  const cp = landed ? m.copy : null;
+  $('copyLane').innerHTML = cp
+    ? `<span>${cp[0]}</span><span class="ar">—</span><span class="cv">${cp[2]}</span><span class="ar">→</span><span>${cp[1]}</span>`
+    : '<span class="ph2">كل خطوة بتبعت نسخة من قيمة لصندوق تاني</span>';
+  $('conOut').textContent = m.out;
+  $('ideSay').innerHTML = st ? st.say : 'دوس "خطوة" وتابع البيانات وهي بتتحرك في الذاكرة';
+  $('ideStep').disabled = ideBusy || idePos >= ideSteps.length - 1;
+}
+const boxEl = n => document.querySelector(`#memVars .mbox[data-v="${n}"] b`);
+const center = el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
+function flyToken(text, fromPt, toPt, dur, tag){
+  const t = document.createElement('div');
+  t.className = 'token';
+  t.innerHTML = text + (tag ? `<span class="tg">${tag}</span>` : '');
+  document.body.appendChild(t);
+  const w = t.offsetWidth, h = t.offsetHeight;
+  const mx = (fromPt.x + toPt.x) / 2, my = Math.min(fromPt.y, toPt.y) - 70;
+  const anim = t.animate([
+    { transform:`translate(${fromPt.x - w/2}px, ${fromPt.y - h/2}px) scale(.6)`, opacity:0 },
+    { transform:`translate(${fromPt.x - w/2}px, ${fromPt.y - h/2}px) scale(1)`, opacity:1, offset:.12 },
+    { transform:`translate(${mx - w/2}px, ${my - h/2}px) scale(1.15)`, offset:.55 },
+    { transform:`translate(${toPt.x - w/2}px, ${toPt.y - h/2}px) scale(.95)`, opacity:1 }
+  ], { duration:dur, easing:'ease-in-out', fill:'forwards' });
+  return anim.finished.then(() => t.remove());
+}
+function dropOld(text, pt){
+  const t = document.createElement('div');
+  t.className = 'token old';
+  t.textContent = text;
+  document.body.appendChild(t);
+  const w = t.offsetWidth, h = t.offsetHeight;
+  eraseSound();
+  return t.animate([
+    { transform:`translate(${pt.x - w/2}px, ${pt.y - h/2}px) rotate(0)`, opacity:1 },
+    { transform:`translate(${pt.x - w/2 + 30}px, ${pt.y - h/2 + 60}px) rotate(25deg)`, opacity:0 }
+  ], { duration:520, easing:'ease-in', fill:'forwards' }).finished.then(() => t.remove());
+}
+async function animateStep(k){
+  const st = ideSteps[k], A = st.anim, prev = k > 0 ? stateAt(k - 1) : { first:null, second:null, temp:null };
+  const now = stateAt(k);
+  const DUR = 700;
+  if (A.from === 'line'){
+    const ln = lnEls[st.line].getBoundingClientRect();
+    const from = { x: ln.left + ln.width * 0.55, y: ln.top + ln.height / 2 };
+    moveSound(DUR / 1000 + .15);
+    await Promise.all(A.to.map((n, i) => new Promise(r => setTimeout(r, i * 150)).then(() => flyToken(now[n], from, center(boxEl(n)), DUR))));
+  } else if (A.to === 'console'){
+    A.from.forEach(n => boxEl(n).closest('.mbox').classList.add('src'));
+    moveSound(DUR / 1000 + .15);
+    const dst = center($('conOut').parentElement);
+    await Promise.all(A.from.map((n, i) => new Promise(r => setTimeout(r, i * 150)).then(() => flyToken(now[n], center(boxEl(n)), { x: dst.x + (i ? 30 : -30), y: dst.y }, DUR, 'نسخة'))));
+  } else {
+    const srcBox = boxEl(A.from), dstBox = boxEl(A.to);
+    srcBox.closest('.mbox').classList.add('src');
+    moveSound(DUR / 1000);
+    const fly = flyToken(prev[A.from], center(srcBox), center(dstBox), DUR, 'نسخة');
+    if (prev[A.to] !== null){
+      await new Promise(r => setTimeout(r, DUR - 160));
+      dstBox.firstChild.textContent = '';
+      dropOld(prev[A.to], center(dstBox));
+    }
+    await fly;
+  }
+  landSound();
+}
+function resetIde(){ ideSteps = ideBuild(parse(ideInput)); idePos = -1; ideBusy = false; renderIde(); }
+function stopIde(){ clearInterval(ideTimer); ideTimer = null; $('ideRun').querySelector('span').textContent = 'تشغيل تلقائي'; }
+async function ideNext(){
+  if (ideBusy) return;
+  if (idePos >= ideSteps.length - 1){ stopIde(); return; }
+  idePos++;
+  ideBusy = true;
+  renderIde(idePos - 1, false);
+  await animateStep(idePos);
+  ideBusy = false;
+  renderIde(idePos, true);
+  if (ideSteps[idePos].anim.to === 'console') retrigger(document.querySelector('.console'), 'land');
+  if (idePos >= ideSteps.length - 1) stopIde();
+}
+$('ideStep').onclick = () => { stopIde(); ideNext(); };
+$('ideReset').onclick = () => { if (ideBusy) return; stopIde(); resetIde(); };
+$('ideRun').onclick = () => {
+  if (ideTimer) return stopIde();
+  if (ideBusy) return;
+  if (idePos >= ideSteps.length - 1) resetIde();
+  $('ideRun').querySelector('span').textContent = 'إيقاف';
+  ideNext();
+  ideTimer = setInterval(ideNext, 1700);
+};
+resetIde();
+
+/* ---------- 5. test ---------- */
+const DOWN = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>';
+function runTest(){
+  const raw = $('tIn').value.trim().replace(/\s+/g, ' ');
+  const nums = parse(raw);
+  if (!nums){
+    $('tErr').textContent = 'محتاج رقمين صحيحين بينهم مسافة';
+    $('tOut').textContent = '';
+    $('tGrid').innerHTML = '<div class="ph">مستني مدخل صح</div>';
+    retrigger($('tIn'), 'shake');
+    return;
+  }
+  $('tErr').textContent = '';
+  const [a, b] = nums;
+  $('tOut').textContent = `${b} ${a}`;
+  retrigger($('tOut'), 'pop');
+  const same = a === b;
+  $('tGrid').innerHTML = `<div class="ba">
+      <div class="row"><span class="lbl2">قبل</span><div class="mrow">${mbox('first', a)}${mbox('second', b)}</div></div>
+      ${DOWN}
+      <div class="row good"><span class="lbl2">بعد Swap</span><div class="mrow">${mbox('first', b, 'ok')}${mbox('second', a, 'ok')}</div></div>
+      <div class="sep"></div>
+      <div class="row trapr"><span class="lbl2">من غير temp</span><div class="mrow">${mbox('first', b, same ? '' : 'bad')}${mbox('second', b, same ? '' : 'bad')}</div></div>
+      <div class="ph">${same ? 'الرقمين زي بعض، فمفيش فرق هنا' : `من غير temp الـ <span class="ltr">${a}</span> بتضيع`}</div>
+    </div>`;
+  if (!SAMPLES.includes(raw)) custom = raw;
+  refreshChips();
+}
+$('tRun').onclick = runTest;
+$('tIn').addEventListener('keydown', e => { if (e.key === 'Enter') runTest(); });
+$('tRand').onclick = () => { const r = () => Math.floor(Math.random() * 199) - 99; $('tIn').value = `${r()} ${r()}`; runTest(); };
+refreshChips();
+runTest();
+
+/* ---------- 6. improve ---------- */
+function showVersion(v){
+  [...$('seg').children].forEach(b => b.classList.toggle('on', +b.dataset.v === v));
+  $('impCode').innerHTML = codeHTML(v ? SHORT : CODE);
+  $('impTab').textContent = v ? 'swap_short.py' : 'swap.py';
+}
+[...$('seg').children].forEach(b => b.onclick = () => showVersion(+b.dataset.v));
+showVersion(0);
+$('nextBtn').onclick = () => openSheet('next');
+
+/* ---------- sheets ---------- */
+const AR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const SHEETS = {
+  temp: {
+    label:'ليه temp؟', title:'ليه محتاجين temp؟',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l10 18H2z"/><path d="M12 9v5M12 17.5v.5"/></svg>',
+    html:`<p><span class="ltr">first = second</span> مش بتبدّل. دي بتنسخ second جوه first، واللي كان في first بيتمسح.</p>
+      <div class="steps-mini"><span class="s">first=5 second=10</span>${AR}<span class="s">first = second</span>${AR}<span class="s b">first=10 second=10</span></div>
+      <p style="margin-top:10px"><span class="ltr">temp</span> يعني "مؤقت": بيشيل القيمة لحد ما نرجّعها.</p>`
+  },
+  order: {
+    label:'الترتيب مهم', title:'الترتيب بيفرق!',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+    html:`<p>لازم نحفظ في temp <b>الأول</b>. لو بدأنا بخطوة 2، الـ 5 هتضيع قبل ما نلحق نحفظها.</p>
+      <pre class="snip">first = second   # first = 10  (الـ 5 راحت!)
+temp = first     # temp = 10   (متأخر)
+second = temp    # second = 10</pre>`
+  },
+  input: {
+    label:'map و split', title:'السطر الأول بيعمل إيه؟',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/></svg>',
+    html:`<p>المدخل بييجي سطر واحد فيه الرقمين. بنقسمه ونحوّل كل جزء لرقم:</p>
+      <div class="steps-mini"><span class="s">"5 10"</span>${AR}<span class="s">split()</span>${AR}<span class="s">["5", "10"]</span>${AR}<span class="s">map(int)</span>${AR}<span class="s g">5 , 10</span></div>`
+  },
+  short: {
+    label:'اختصار بايثون', title:'اختصار بايثون السحري',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+    html:`<p>بايثون بيسمحلك تبدّل في سطر واحد:</p>
+      <pre class="snip">first, second = second, first</pre>
+      <p style="margin-top:8px">بايثون بيحسب الناحية اليمين كلها الأول <span class="ltr">(10, 5)</span>، وبعدين يوزّعها. بس افهم فكرة temp كويس، لأنها موجودة في كل لغات البرمجة.</p>`
+  }
+};
+const NEXT = {
+  title:'التحدي الجاي: Sort Numbers',
+  html:`<div class="nx">
+    <div class="g">عندك 3 أرقام ملخبطة، رتّبهم من <b>الصغير للكبير</b></div>
+    <svg viewBox="0 0 620 210" direction="ltr" font-family="Fira Code" font-weight="700">
+      <g>
+        <path d="M30 60 L40 170 H120 L130 60Z" fill="#fff" stroke="#1d1b3b" stroke-width="4" stroke-linejoin="round"/><path d="M33 92 L40 170 H120 L127 92Z" fill="#ff9f43"/><text x="80" y="138" text-anchor="middle" fill="#1d1b3b" font-size="38">9</text>
+        <path d="M170 60 L180 170 H260 L270 60Z" fill="#fff" stroke="#1d1b3b" stroke-width="4" stroke-linejoin="round"/><path d="M173 92 L180 170 H260 L267 92Z" fill="#ff6b9a"/><text x="220" y="138" text-anchor="middle" fill="#1d1b3b" font-size="38">2</text>
+        <path d="M80 48 Q150 8 220 48" stroke="#ff5a4e" stroke-width="4.5" fill="none" stroke-dasharray="9 7"/><path d="M208 40 L222 50 L206 55" stroke="#ff5a4e" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="150" y="22" text-anchor="middle" fill="#ff5a4e" font-size="20">swap?</text>
+      </g>
+      <path d="M310 60 L320 170 H400 L410 60Z" fill="#fff" stroke="#1d1b3b" stroke-width="4" stroke-linejoin="round"/><path d="M313 92 L320 170 H400 L407 92Z" fill="#7cc4ff"/><text x="360" y="138" text-anchor="middle" fill="#1d1b3b" font-size="38">5</text>
+      <path d="M440 115 H490" stroke="#1d1b3b" stroke-width="4"/><path d="M480 104 L494 115 L480 126" stroke="#1d1b3b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="505" y="60" width="100" height="110" rx="18" fill="#d4f7ec" stroke="#1d1b3b" stroke-width="4"/>
+      <text x="555" y="124" text-anchor="middle" fill="#05a57c" font-size="26">2 5 9</text>
+    </svg>
+    <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>قارن كل رقمين، ولو الكبير جه قبل الصغير بدّلهم بالـ temp اللي اتعلمته</div>
+    <div class="try">اقرأ المسألة وجرّب بنفسك الأول · <a href="https://codeforces.com/group/MWSDmqGsZm/contest/219158/problem/T" target="_blank" rel="noopener">افتح Sort Numbers</a></div>
+  </div>`
+};
+Object.entries(SHEETS).forEach(([k, s]) => {
+  const b = document.createElement('button');
+  b.className = 'hint-btn';
+  b.innerHTML = `${s.icon}<span>${s.label}</span>`;
+  b.onclick = () => openSheet(k);
+  $('hints').appendChild(b);
+});
+function openSheet(k){
+  const d = k === 'next' ? NEXT : SHEETS[k];
+  document.querySelector('.sheet').className = 'sheet' + (k === 'next' ? ' big' : '');
+  $('sheetTitle').textContent = d.title;
+  $('sheetBody').innerHTML = d.html;
+  $('sheetWrap').classList.add('open');
+}
+function closeSheet(){ $('sheetWrap').classList.remove('open'); }
+$('sheetClose').onclick = closeSheet;
+$('sheetWrap').onclick = e => { if (e.target.id === 'sheetWrap') closeSheet(); };
+</script>
+</body>
+</html>
